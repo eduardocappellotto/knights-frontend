@@ -4,7 +4,7 @@ import axios from 'axios';
 import { IKnight } from '../interfaces/knight.interface';
 import { ref } from 'vue';
 
-const API_BASE_URL = 'https://knight-server-production.up.railway.app';
+const API_BASE_URL = process.env.API_BASE_URL;
 
 export interface ApiResponse<T> {
   status: 'success' | 'error';
