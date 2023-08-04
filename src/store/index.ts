@@ -1,62 +1,102 @@
-import { store } from 'quasar/wrappers'
-import { InjectionKey } from 'vue'
-import { Router } from 'vue-router'
-import {
-  createStore,
-  Store as VuexStore,
-  useStore as vuexUseStore,
-} from 'vuex'
+// store/knightStore.ts
+import { defineStore } from 'pinia';
+import axios from 'axios';
+import { IKnight } from '../interfaces/knight.interface';
+import { ref } from 'vue';
 
-// import example from './module-example'
-// import { ExampleStateInterface } from './module-example/state';
+const API_BASE_URL = 'https://knight-server-production.up.railway.app';
 
-/*
- * If not building with SSR mode, you can
- * directly export the Store instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Store instance.
- */
-
-export interface StateInterface {
-  // Define your own store structure, using submodules if needed
-  // example: ExampleStateInterface;
-  // Declared as unknown to avoid linting issue. Best to strongly type as per the line above.
-  example: unknown
+export interface ApiResponse<T> {
+  status: 'success' | 'error';
+  message: string;
+  count?: number;
+  data?: T;
 }
 
-// provide typings for `this.$store`
-declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $store: VuexStore<StateInterface>
+export const useKnightStore = defineStore('knight', () => {
+
+  const knightsList = ref<IKnight[]>([])
+  const selectedKnight = ref<IKnight>()
+  const loading = ref(false)
+  const error = ref('')
+
+  async function fetchKnights(filter = "") {
+
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { data } = await axios.get<IKnight[]>(`${API_BASE_URL}/knights`, {
+        params: {
+          filter: filter
+        }
+      });
+      knightsList.value = data.data;
+    } catch (e) {
+      error.value = 'Failed to fetch knights.';
+      knightsList.value = [];
+    } finally {
+      loading.value = false;
+    }
   }
-}
 
-// provide typings for `useStore` helper
-export const storeKey: InjectionKey<VuexStore<StateInterface>> = Symbol('vuex-key')
+  async function fetchKnightById(id: string): IKnight {
 
-// Provide typings for `this.$router` inside Vuex stores
- declare module 'vuex' {
-   export interface Store<S> {
-     readonly $router: Router;
-   }
- }
+    loading.value = true;
+    error.value = '';
 
-export default store(function (/* { ssrContext } */) {
-  const Store = createStore<StateInterface>({
-    modules: {
-      // example
-    },
+    try {
+      const { data: response } = await axios.get<ApiResponse<IKnight[]>>(`${API_BASE_URL}/knights/${id}`);
+      return response.data;
+    } catch (e) {
+      error.value = 'Failed to fetch knights.';
+      knightsList.value = [];
+    } finally {
+      loading.value = false;
+    }
+  }
 
-    // enable strict mode (adds overhead!)
-    // for dev mode and --debug builds only
-    strict: !!process.env.DEBUGGING
-  })
+  async function createKnight(knight: IKnight) {
+    loading.value = true;
+    error.value = '';
 
-  return Store;
+    try {
+      await axios.post<IKnight>(`${API_BASE_URL}/knights`, knight);
+      await fetchKnights();
+    } catch (e) {
+      error.value = 'Failed to create knight.';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  async function updateKnight(id: string, knight: IKnight) {
+    loading.value = true;
+    error.value = '';
+
+    try {
+      await axios.put<IKnight>(`${API_BASE_URL}/knights/${id}`, knight);
+      await fetchKnights();
+    } catch (e) {
+      error.value = 'Failed to update knight.';
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  async function deleteKnight(id: string) {
+    loading.value = true;
+    error.value = '';
+
+    try {
+      await axios.delete<IKnight>(`${API_BASE_URL}/knights/${id}`);
+      await fetchKnights();
+    } catch (e) {
+      error.value = 'Failed to delete knight.';
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  return { knightsList, selectedKnight, error, loading, fetchKnights, createKnight, updateKnight, deleteKnight, fetchKnightById }
 })
-
-export function useStore() {
-  return vuexUseStore(storeKey)
-}

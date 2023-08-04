@@ -4,14 +4,20 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'knight/:id?', component: () => import('pages/KnightForm.vue') },
+    ],
   },
 
-  // Always leave this as last one,
-  // but you can also remove it
+
+  // Error page with named view
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
+    components: {
+      default: () => import('layouts/MainLayout.vue'),
+      error: () => import('pages/ErrorNotFound.vue'),
+    },
   },
 ];
 
