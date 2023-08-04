@@ -54,6 +54,7 @@
                         :placeholder="`${key}: 0 - 100`" type="number" min="0" max="100" />
                 </div>
                 <label for="Weapon Name"> Key Attribute</label>
+
                 <q-select :disable="isEdit" required class="q-mb-lg" v-model="knight.keyAttribute"
                     :options="Object.keys(knight.attributes)" outlined dense placeholder="strength" />
                 <q-btn v-if="!isEdit" type="submit" :label="isEdit ? 'Update' : 'Save'" color="primary" />
@@ -75,6 +76,8 @@ const router = useRouter()
 const route = useRoute()
 
 const $q = useQuasar()
+
+const attributesEnum = ref(["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"])
 
 const knight = ref<IKnight>({
     name: '',
@@ -105,7 +108,7 @@ const { createKnight, fetchKnightById, updateKnight } = useKnightStore();
 
 onMounted(async () => {
 
-    if (route.params.id !== null) {
+    if (!!route.params.id) {
         let knightId = route.params.id
         isEdit.value = true;
         knight.value = await fetchKnightById(knightId)
