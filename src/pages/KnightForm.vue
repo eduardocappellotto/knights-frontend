@@ -2,7 +2,9 @@
     <q-page>
         <q-page-container class="q-pa-md flex justify-center">
             <q-form @submit="submitNewKnight" class="space-y-4 text-black" style="width: 60%;min-width: 20rem}">
-                <p class=" text-black">Create a Knight</p>
+                <q-btn class="q-mb-lg" round color="primary" icon="arrow_back" @click="router.push('/')"></q-btn>
+
+                <br>
                 <label for="name">Name</label>
                 <q-input required class="q-my-sm" :disable="isEdit" outlined dense v-model="knight.name"
                     placeholder="Gandalf the White" />
